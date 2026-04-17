@@ -1349,6 +1349,11 @@ const SAMPLE_LEADS = [
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbzLHy8cLZ7_fCWjVXePyz21DV4cbe4NalC5EQb-VuG7hwDemd-H3dQyjXiHdMS2-ji8ZQ/exec';
 
+// API 오염된 캐시 강제 1회 초기화
+if (localStorage.getItem('b2b_lead_cache_v') !== '3') {
+  localStorage.removeItem('b2b_leads');
+  localStorage.setItem('b2b_lead_cache_v', '3');
+}
 const stored = localStorage.getItem('b2b_leads');
 const _storedLeads = stored ? JSON.parse(stored) : [];
 const _localLeads = _storedLeads.filter(l => !l._from_api);
