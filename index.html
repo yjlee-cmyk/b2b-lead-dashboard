@@ -1350,7 +1350,9 @@ const SAMPLE_LEADS = [
 const API_URL = 'https://script.google.com/macros/s/AKfycbzLHy8cLZ7_fCWjVXePyz21DV4cbe4NalC5EQb-VuG7hwDemd-H3dQyjXiHdMS2-ji8ZQ/exec';
 
 const stored = localStorage.getItem('b2b_leads');
-let leads = stored ? JSON.parse(stored) : SAMPLE_LEADS.map(l => ({...l}));
+const _storedLeads = stored ? JSON.parse(stored) : [];
+const _localLeads = _storedLeads.filter(l => !l._from_api);
+let leads = _localLeads.length > 0 ? _localLeads : SAMPLE_LEADS.map(l => ({...l}));
 let customInstructors = JSON.parse(localStorage.getItem('b2b_custom_instructors') || '[]');
 let currentSort = { field: 'lead_date', dir: 'desc' };
 let activeStatusFilter = '';
@@ -1427,13 +1429,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set default date
   document.getElementById('fLeadDate').value = new Date().toISOString().split('T')[0];
 
-  // 캐시 즉시 렌더 후 API 동기화
+  // Initial render
   renderDashboard();
   renderStatusFilterBar();
   renderLeadsList();
   renderInstructors();
   addCaseRow();
-  loadLeadsFromAPI();
 });
 
 // ============================================================
