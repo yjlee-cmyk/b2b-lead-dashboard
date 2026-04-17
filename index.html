@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2B Lead Management Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #111827;
+    --bg-card: #1a2236;
+    --bg-card-hover: #1f2a42;
+    --bg-input: #0f1629;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-purple: #8b5cf6;
+    --accent-pink: #ec4899;
+    --accent-green: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: #1e293b;
+    --border-focus: #3b82f6;
+    --gradient-1: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    --gradient-2: linear-gradient(135deg, #06b6d4, #10b981);
+    --gradient-3: linear-gradient(135deg, #ec4899, #f59e0b);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* === HEADER === */
+  .app-header {
+    background: rgba(17, 24, 39, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .app-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .app-title h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .app-title .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    color: var(--accent-blue);
+    font-weight: 500;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* === NAV TABS === */
+  .nav-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.75rem 2rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-tab {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .nav-tab:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+  .nav-tab.active {
+    color: var(--text-primary);
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  /* === MAIN === */
+  .main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* === CARDS === */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  /* === STATS === */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+  .stat-card.active-all   { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.08); }
+  .stat-card.active-신규  { border-color: rgba(59,130,246,0.5); background: rgba(59,130,246,0.08); }
+  .stat-card.active-컨택중 { border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.08); }
+  .stat-card.active-제안중 { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.08); }
+  .stat-card.active-확정  { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.08); }
+  .stat-card.active-종료  { border-color: rgba(239,68,68,0.5);  background: rgba(239,68,68,0.08); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .stat-card:nth-child(1)::before { background: var(--gradient-1); }
+  .stat-card:nth-child(2)::before { background: var(--gradient-2); }
+  .stat-card:nth-child(3)::before { background: var(--gradient-3); }
+  .stat-card:nth-child(4)::before { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+  .stat-card:nth-child(5)::before { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  /* === FORMS === */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  .form-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select { cursor: pointer; }
+
+  /* === BUTTONS === */
+  .btn {
+    padding: 0.55rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn-primary {
+    background: var(--gradient-1);
+    color: white;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+
+  .btn-success {
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: white;
+  }
+
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+  .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+
+  .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+
+  /* === TABLE === */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  th {
+    background: rgba(59, 130, 246, 0.08);
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--text-primary); }
+
+  td {
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+  /* === STATUS BADGES === */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+
+  .status-new {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+  }
+  .status-contact {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent-purple);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+  }
+  .status-proposal {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent-amber);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+  .status-confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+  .status-closed {
+    background: rgba(100, 116, 139, 0.15);
+    color: var(--text-muted);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+  }
+  .status-lost {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  /* === SEARCH BAR === */
+  .search-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .search-bar-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* === STATUS FILTER PILLS === */
+  .status-filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .status-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .status-filter-pill:hover { border-color: var(--border-focus); color: var(--text-primary); }
+  .status-filter-pill.active-all { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+  .status-filter-pill.active-신규 { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: var(--accent-blue); }
+  .status-filter-pill.active-컨택중 { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.4); color: var(--accent-purple); }
+  .status-filter-pill.active-제안중 { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4); color: var(--accent-amber); }
+  .status-filter-pill.active-확정 { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: var(--accent-green); }
+  .status-filter-pill.active-종료 { background: rgba(100,116,139,0.15); border-color: rgba(100,116,139,0.4); color: var(--text-muted); }
+  .status-filter-pill.active-실주 { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: var(--accent-red); }
+  .status-filter-count {
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.08);
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+
+  .search-input-wrapper {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+  }
+
+  .search-input-wrapper .form-input {
+    width: 100%;
+    padding-left: 2.2rem;
+  }
+
+  .search-input-wrapper::before {
+    content: '🔍';
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    opacity: 0.5;
+  }
+
+  /* === MODAL === */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 1rem;
+    overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .modal-close:hover { color: var(--text-primary); }
+
+  /* === INSTRUCTOR CHIPS === */
+  .instructor-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .instructor-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.65rem;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--accent-purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .instructor-chip:hover {
+    background: rgba(139, 92, 246, 0.25);
+  }
+  .instructor-chip.selected {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--accent-green);
+  }
+  .instructor-chip .remove {
+    font-size: 0.7rem;
+    opacity: 0.6;
+  }
+  .instructor-chip .remove:hover { opacity: 1; }
+
+  /* === INSTRUCTOR CARD === */
+  .instructor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+
+  .instructor-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .instructor-card:hover {
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .instructor-card .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .instructor-card .meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .instructor-card .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 500;
+  }
+  .tag-blue { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+  .tag-purple { background: rgba(139,92,246,0.12); color: var(--accent-purple); }
+  .tag-green { background: rgba(16,185,129,0.12); color: var(--accent-green); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+  .tag-red { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+  .tag-cyan { background: rgba(6,182,212,0.12); color: var(--accent-cyan); }
+
+  /* === DETAIL VIEW === */
+  .detail-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .detail-section h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    font-size: 0.82rem;
+  }
+
+  .detail-row .label {
+    color: var(--text-muted);
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  /* === EMPTY STATE === */
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* === TOOLTIP === */
+  .caution-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: rgba(245, 158, 11, 0.2);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 0.6rem;
+    color: var(--accent-amber);
+    cursor: help;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .app-header { padding: 0.75rem 1rem; }
+    .main-content { padding: 1rem; }
+    .nav-tabs { padding: 0.5rem 1rem; overflow-x: auto; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* === ANIMATIONS === */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeIn 0.3s ease-out; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* === NOTIFICATION === */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    z-index: 300;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--accent-green);
+  }
+  .toast-error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--accent-red);
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-title">
+    <h1>B2B Lead Manager</h1>
+    <span class="badge">Day1 B2B 2Team</span>
+  </div>
+  <div class="header-actions">
+    <span id="syncStatus" style="font-size:0.72rem;color:var(--text-muted);margin-right:0.5rem"></span>
+    <button class="btn btn-secondary btn-sm" onclick="loadLeadsFromAPI()" title="Google Sheets에서 새로고침">⟳ 새로고침</button>
+    <button class="btn btn-secondary btn-sm" onclick="exportAllJSON()">JSON Export</button>
+    <label class="btn btn-secondary btn-sm" style="cursor:pointer">
+      JSON Import
+      <input type="file" accept=".json" onchange="importJSON(event)" style="display:none">
+    </label>
+    <button class="btn btn-secondary btn-sm" onclick="resetToSample()" title="샘플 데이터로 초기화">&#8635; Reset</button>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+  <button class="nav-tab" data-tab="leads">Leads</button>
+  <button class="nav-tab" data-tab="new-lead">+ New Lead</button>
+  <button class="nav-tab" data-tab="instructors">Instructors</button>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+  <!-- ===== DASHBOARD TAB ===== -->
+  <div id="tab-dashboard" class="tab-panel active animate-in">
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem">
+        <div class="card-title" style="margin-bottom:0">Recent Leads</div>
+        <div class="status-filter-bar" id="dashboardFilterBar"></div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Topic</th>
+              <th>Contact</th>
+              <th>Organization</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recentLeadsBody"></tbody>
+        </table>
+      </div>
+      <div id="recentLeadsEmpty" class="empty-state" style="display:none">
+        <div class="icon">&#128203;</div>
+        <p>No leads yet. Create your first lead!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEADS TAB ===== -->
+  <div id="tab-leads" class="tab-panel">
+    <div class="search-bar">
+      <div class="search-bar-row">
+        <div class="search-input-wrapper">
+          <input type="text" class="form-input" id="leadSearch" placeholder="Search leads..." oninput="renderLeadsList()">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="switchTab('new-lead')">+ New Lead</button>
+      </div>
+      <div class="status-filter-bar" id="statusFilterBar"></div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortLeads('lead_id')">ID</th>
+            <th onclick="sortLeads('lead_date')">Date</th>
+            <th onclick="sortLeads('education_topic')">Topic</th>
+            <th>Contact</th>
+            <th>Organization</th>
+            <th>Instructors</th>
+            <th onclick="sortLeads('status')">Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="leadsTableBody"></tbody>
+      </table>
+    </div>
+    <div id="leadsEmpty" class="empty-state" style="display:none">
+      <div class="icon">&#128203;</div>
+      <p>No leads found.</p>
+    </div>
+  </div>
+
+  <!-- ===== NEW LEAD TAB ===== -->
+  <div id="tab-new-lead" class="tab-panel" style="display:flex;flex-direction:column;height:calc(100vh - 130px)">
+    <form id="leadForm" onsubmit="return saveLead(event)" style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <input type="hidden" id="editLeadId" value="">
+      <div style="flex:1;overflow-y:auto;padding-right:4px">
+
+      <!-- Basic Info -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue)">1</span>
+          Basic Info
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Lead Date *</label>
+            <input type="date" class="form-input" id="fLeadDate" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="fStatus">
+              <option value="신규">신규</option>
+              <option value="컨택중">컨택중</option>
+              <option value="제안중">제안중</option>
+              <option value="확정">확정</option>
+              <option value="종료">종료</option>
+              <option value="실주">실주</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Education Topic *</label>
+            <input type="text" class="form-input" id="fTopic" placeholder="e.g. 생성형 AI 활용, 업무자동화, 데이터분석..." required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:rgba(139,92,246,0.15);color:var(--accent-purple)">2</span>
+          Contact Info
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-input" id="fName" placeholder="담당자명">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Organization</label>
+            <input type="text" class="form-input" id="fOrg" placeholder="기업/기관명">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" class="form-input" id="fPhone" placeholder="010-0000-0000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="fEmail" placeholder="email@company.com">
+          </div>
+        </div>
+      </div>
+
+      <!-- Similar Cases -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:rgba(6,182,212,0.15);color:var(--accent-cyan)">3</span>
+          Similar Cases
+        </div>
+        <div id="casesContainer"></div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addCaseRow()" style="margin-top:0.5rem">+ Add Case</button>
+      </div>
+
+      <!-- Recommended Instructors -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">4</span>
+          Recommended Instructors
+          <button type="button" class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="openInstructorPicker()">Auto Match</button>
+        </div>
+        <div id="selectedInstructors" class="instructor-chips" style="margin-bottom:0.75rem"></div>
+        <div id="instructorRows"></div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addInstructorRow()" style="margin-top:0.5rem">+ Add Manually</button>
+      </div>
+
+      <!-- Notes -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:rgba(245,158,11,0.15);color:var(--accent-amber)">5</span>
+          Notes
+        </div>
+        <div class="form-group">
+          <textarea class="form-textarea" id="fNotes" placeholder="Additional notes..." rows="3"></textarea>
+        </div>
+      </div>
+      </div><!-- end scroll area -->
+
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;padding-top:0.75rem;border-top:1px solid var(--border);margin-top:0.5rem;background:var(--bg-primary)">
+        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Lead</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===== INSTRUCTORS TAB ===== -->
+  <div id="tab-instructors" class="tab-panel">
+    <div class="search-bar">
+      <div class="search-input-wrapper">
+        <input type="text" class="form-input" id="instructorSearch" placeholder="Search instructors by name, expertise, keyword..." oninput="renderInstructors()">
+      </div>
+      <select class="form-select" id="instructorCategory" onchange="renderInstructors()">
+        <option value="">All Categories</option>
+        <option value="AI">AI / GenAI</option>
+        <option value="Data">Data / Python</option>
+        <option value="Business">Business / Marketing</option>
+        <option value="HardSkill">Hard Skill</option>
+        <option value="Design">Design / UX</option>
+        <option value="HL">HL Work Smart</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openAddInstructorModal()">+ 강사 추가</button>
+    </div>
+    <div class="instructor-grid" id="instructorGrid"></div>
+  </div>
+
+</div>
+
+<!-- LEAD DETAIL MODAL -->
+<div class="modal-overlay" id="leadDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalLeadTitle">Lead Detail</h2>
+      <button class="modal-close" onclick="closeModal('leadDetailModal')">&times;</button>
+    </div>
+    <div id="modalLeadContent"></div>
+  </div>
+</div>
+
+<!-- INSTRUCTOR PICKER MODAL -->
+<div class="modal-overlay" id="instructorPickerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Instructor Auto-Match</h2>
+      <button class="modal-close" onclick="closeModal('instructorPickerModal')">&times;</button>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem">
+      Topic based on the form's education topic. Click instructors to select (up to 6).
+    </p>
+    <div id="pickerInstructorGrid" class="instructor-grid"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-primary" onclick="applyPickedInstructors()">Apply Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTOR DETAIL MODAL -->
+<div class="modal-overlay" id="instructorDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalInstructorTitle">Instructor Detail</h2>
+      <button class="modal-close" onclick="closeModal('instructorDetailModal')">&times;</button>
+    </div>
+    <div id="modalInstructorContent"></div>
+  </div>
+</div>
+
+<!-- ADD INSTRUCTOR MODAL -->
+<div class="modal-overlay" id="addInstructorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>강사 추가</h2>
+      <button class="modal-close" onclick="closeModal('addInstructorModal')">&times;</button>
+    </div>
+    <form id="addInstructorForm" onsubmit="return saveNewInstructor(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">이름 *</label>
+          <input type="text" class="form-input" id="iName" required placeholder="홍길동">
+        </div>
+        <div class="form-group">
+          <label class="form-label">유형</label>
+          <select class="form-select" id="iType">
+            <option value="전임강사">전임강사</option>
+            <option value="프리랜서">프리랜서</option>
+            <option value="개인사업자">개인사업자</option>
+            <option value="법인사업자">법인사업자</option>
+            <option value="에이전시">에이전시</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <select class="form-select" id="iCategory">
+            <option value="AI">AI / GenAI</option>
+            <option value="Data">Data / Python</option>
+            <option value="Business">Business / Marketing</option>
+            <option value="HardSkill">Hard Skill</option>
+            <option value="Design">Design / UX</option>
+            <option value="HL">HL Work Smart</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">성별</label>
+          <select class="form-select" id="iGender">
+            <option value="">-</option>
+            <option value="남">남</option>
+            <option value="여">여</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">시간당 강사료 (원)</label>
+          <input type="number" class="form-input" id="iFee" placeholder="150000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">계약 유형</label>
+          <input type="text" class="form-input" id="iContract" placeholder="개인과세 3.3%">
+        </div>
+        <div class="form-group">
+          <label class="form-label">만족도</label>
+          <input type="text" class="form-input" id="iSatisfaction" placeholder="4.0~4.8">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">가능 커리큘럼 (쉼표 구분)</label>
+          <input type="text" class="form-input" id="iCurricula" placeholder="생성형 AI 활용, 프롬프트 엔지니어링">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">강점 (쉼표 구분)</label>
+          <input type="text" class="form-input" id="iStrengths" placeholder="실습 위주 강의, 전달력 우수">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">주의사항 (쉼표 구분)</label>
+          <input type="text" class="form-input" id="iCautions" placeholder="스케줄 사전 확인 필수">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">출강 이력 (쉼표 구분)</label>
+          <input type="text" class="form-input" id="iClients" placeholder="삼성SDS, KT, 현대자동차">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">키워드 (쉼표 구분)</label>
+          <input type="text" class="form-input" id="iKeywords" placeholder="AI, 프롬프트, 자동화">
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addInstructorModal')">취소</button>
+        <button type="submit" class="btn btn-primary">강사 저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// INSTRUCTOR DATABASE
+// ============================================================
+const INSTRUCTORS = [
+  {
+    id: "I001", name: "정백", type: "전임강사", category: "AI",
+    gender: "남", fee: null, contract: "정규직",
+    satisfaction: "4.1~5.0",
+    curricula: ["생성형 AI","프롬프트 엔지니어링","AI 리터러시","AI 활용 실무","AI 심화과정","엑셀+AI"],
+    strengths: ["안정감 있는 음성 톤","전달력 뛰어남","아이스브레이킹 우수","트러블슈팅 침착","AI 박사, 경희대 강사","타임라인 관리 철저"],
+    cautions: ["충분한 정보 공유 필요","주요 변경사항 사전 안내 필요"],
+    clients: ["HL그룹","오뚜기","효성","우리금융그룹","대상주식회사","KT","공개교육","KIST","경기도농수산진흥원"],
+    keywords: ["생성형AI","프롬프트","리터러시","활용","심화","엑셀","기초","전사","승진자","신사업"]
+  },
+  {
+    id: "I002", name: "신동원", type: "전임강사", category: "AI",
+    gender: "남", fee: null, contract: "전임",
+    satisfaction: "4.2~4.9",
+    curricula: ["생성형 AI","AI Agent","업무자동화 (Make)","엑셀+AI","AI 보고서 작성","Claude AI","AI 딥리서치","데이터 관리"],
+    strengths: ["가장 넓은 커버리지","B2G 출강 다수","공개교육 경험 풍부","직무특화 과정 가능"],
+    cautions: ["스케줄 매우 빽빽","강사위키 미작성"],
+    clients: ["SK실트론","KB국민은행","한국암웨이","KIST","롯데마트","한국남동발전","한국보건의료정보원","경기주택도시공사","부산국제금융센터","국가보안기술연구소"],
+    keywords: ["Agent","자동화","Make","엑셀","보고서","Claude","딥리서치","데이터","금융","공공","B2G"]
+  },
+  {
+    id: "I003", name: "공지연", type: "전임강사", category: "AI",
+    gender: "여", fee: null, contract: "전임",
+    satisfaction: "4.1~4.8",
+    curricula: ["생성형 AI 활용","AI 리터러시 기초","마케터 AI 과정","상품기획 AI","비즈니스 AI"],
+    strengths: ["前 마케터/PM 비즈니스 관점 강점","다수 기업교육 이력","공개교육 마케터 AI"],
+    cautions: ["이메일 계정 변경","일정 조율 노티 필요"],
+    clients: ["대상주식회사","삼성물산","한화투자증권","TKG태광","HL","동국제강"],
+    keywords: ["마케팅","비즈니스","리터러시","기초","상품기획","마케터","신입사원"]
+  },
+  {
+    id: "I004", name: "김재성", type: "전임강사", category: "AI",
+    gender: "남", fee: null, contract: "전임",
+    satisfaction: "4.5~4.7",
+    curricula: ["B2B 세일즈를 위한 생성형 AI 활용"],
+    strengths: ["B2B 세일즈 AI 특화"],
+    cautions: [],
+    clients: ["공개교육"],
+    keywords: ["세일즈","B2B","영업"]
+  },
+  {
+    id: "I005", name: "최진영B", type: "프리랜서", category: "AI",
+    gender: "남", fee: 150000, contract: "개인과세 3.3%",
+    satisfaction: null,
+    curricula: ["생성형 AI 기초","프롬프트 엔지니어링","AI 활용 실무"],
+    strengths: ["친절하고 피드백 수용","제조업 특화","기초과정 단계적 실습","강의력+전달력 좋음"],
+    cautions: ["속도 맞추는 경향","프롬프트 전면 점검 시 시간 부족","답변 중간 정정 잦음"],
+    clients: ["동국제강","홈앤서비스"],
+    keywords: ["기초","프롬프트","활용","제조","제조업"]
+  },
+  {
+    id: "I006", name: "박상훈", type: "프리랜서", category: "AI",
+    gender: null, fee: null, contract: null,
+    satisfaction: null,
+    curricula: ["AI Advanced (심화)","생성형 AI 활용"],
+    strengths: ["DK Academy Advanced 전담","심화과정 전문"],
+    cautions: ["상세 정보 부족"],
+    clients: ["동국제강"],
+    keywords: ["심화","Advanced","DK"]
+  },
+  {
+    id: "I007", name: "장철원", type: "법인사업자", category: "AI",
+    gender: "남", fee: 200000, contract: "법인사업자 10%",
+    satisfaction: null,
+    curricula: ["생성형 AI Basic","AI 활용"],
+    strengths: ["크래프톤, NHN, 나노쿠키 경력"],
+    cautions: ["강사위키 미작성"],
+    clients: ["동국제강"],
+    keywords: ["기초","Basic","활용"]
+  },
+  {
+    id: "I008", name: "유연휘", type: "에이전시(스코프랩스)", category: "AI",
+    gender: "남", fee: 150000, contract: "법인사업자 10%",
+    satisfaction: null,
+    curricula: ["AI 연구","생성형 AI","최신 AI 기술"],
+    strengths: ["AI 전문 연구자","부드러운 톤","실습 모니터링 적극적","담당자 만족"],
+    cautions: ["대학원생 스케줄","동안 페이스","소통 느림"],
+    clients: ["홈앤서비스"],
+    keywords: ["연구","최신","AI기술"]
+  },
+  {
+    id: "I009", name: "송유이", type: "에이전시(스코프랩스)", category: "AI",
+    gender: "여", fee: 200000, contract: "법인사업자 10%",
+    satisfaction: null,
+    curricula: ["생성형 AI","AI 활용"],
+    strengths: ["사례/예시 중심 강의"],
+    cautions: ["목소리 톤 피드백","강사 교체 이력","소통 느림"],
+    clients: ["홈앤서비스","라이나손보"],
+    keywords: ["활용","생성형"],
+    warning: true
+  },
+  {
+    id: "I010", name: "신도용", type: "프리랜서", category: "Data",
+    gender: "남", fee: 230000, contract: "개인과세 3.3%",
+    satisfaction: null,
+    curricula: ["데이터 분석","파이썬","AI+데이터"],
+    strengths: ["데이터 분석 특화","강의력 좋음","차분하고 부드러운 톤","소통 잘됨"],
+    cautions: [],
+    clients: ["GS리테일"],
+    keywords: ["데이터","분석","파이썬","Python"]
+  },
+  {
+    id: "I011", name: "김인섭", type: "개인사업자", category: "Data",
+    gender: "남", fee: 200000, contract: "개인사업자 10%",
+    satisfaction: null,
+    curricula: ["데이터 분석","파이썬"],
+    strengths: ["데이터/파이썬 전문","담당자 만족","강의력 좋음"],
+    cautions: ["연락 잘 안됨","인내심 필요"],
+    clients: ["HL만도"],
+    keywords: ["데이터","분석","파이썬","Python"]
+  },
+  {
+    id: "I012", name: "이보원", type: "개인사업자", category: "Business",
+    gender: "남", fee: 250000, contract: "개인사업자 10%",
+    satisfaction: null,
+    curricula: ["마케팅 AI","비즈니스 AI","생성형 AI 활용"],
+    strengths: ["마케팅 전문","커리큘럼 구성 의견 반영","강의력 좋음","소통 매우 빠름"],
+    cautions: ["장난치는 스타일","계약 유형 확인 필수"],
+    clients: ["오스테오닉"],
+    keywords: ["마케팅","비즈니스","마케터"]
+  },
+  {
+    id: "I013", name: "신주혜", type: "개인사업자", category: "Business",
+    gender: "여", fee: "200000~300000", contract: "개인사업자 10%",
+    satisfaction: null,
+    curricula: ["마케팅 AI","직무특화 AI"],
+    strengths: ["마케팅 특화","수강생+담당자 만족"],
+    cautions: ["의견 강함, 피드백 수용 부족","준비 부족","연락 안됨","복장 이슈"],
+    clients: ["홈앤서비스"],
+    keywords: ["마케팅","직무특화"],
+    warning: true
+  },
+  {
+    id: "I014", name: "이동훈", type: "프리랜서", category: "HardSkill",
+    gender: "남", fee: null, contract: null,
+    satisfaction: null,
+    curricula: ["엑셀","구글시트","업무 자동화","하드스킬"],
+    strengths: ["쉬운 언어로 설명","비언어적 표현 활용","유머 있는 강의","실습 위주"],
+    cautions: ["수직적 문화 기업에서 부적합 가능"],
+    clients: [],
+    keywords: ["엑셀","구글시트","자동화","하드스킬","PPT","Excel","Sheet"]
+  },
+  {
+    id: "I015", name: "가재덕", type: "프리랜서", category: "Design",
+    gender: "남", fee: 130000, contract: null,
+    satisfaction: null,
+    curricula: ["UX/UI 디자인","UX 디자인"],
+    strengths: [],
+    cautions: ["강사위키 미작성"],
+    clients: [],
+    keywords: ["UX","UI","디자인","Design","피그마","Figma"]
+  },
+  {
+    id: "I016", name: "김태영", type: "에이전시(에듀앤택)", category: "AI",
+    gender: null, fee: null, contract: null,
+    satisfaction: null,
+    curricula: [],
+    strengths: ["에듀앤택 소속 (300명 강사Pool)"],
+    cautions: ["상세 미작성"],
+    clients: [],
+    keywords: ["에듀앤택","IT교육","HRD"]
+  },
+  // HL Work Smart
+  {
+    id: "I017", name: "김진성", type: "프리랜서", category: "HL",
+    gender: null, fee: 200000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 10차수 투입"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I018", name: "권병희", type: "프리랜서", category: "HL",
+    gender: null, fee: 150000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 3차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I019", name: "지미옥", type: "프리랜서", category: "HL",
+    gender: null, fee: 150000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 3차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I020", name: "강신정", type: "개인사업자", category: "HL",
+    gender: null, fee: 200000, contract: "개인사업자 10%",
+    curricula: ["생성형 AI"], strengths: ["HL 2차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I021", name: "이진원A", type: "프리랜서", category: "HL",
+    gender: null, fee: 200000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 4차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I022", name: "엄태경", type: "프리랜서", category: "HL",
+    gender: null, fee: 200000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 5차수, 신규"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I023", name: "최재석", type: "프리랜서", category: "HL",
+    gender: null, fee: 150000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 5차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I024", name: "이소민", type: "프리랜서", category: "HL",
+    gender: null, fee: 180000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 2차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I025", name: "강슬기", type: "개인사업자", category: "HL",
+    gender: null, fee: 150000, contract: "개인사업자 10%",
+    curricula: ["생성형 AI"], strengths: ["HL 3차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I026", name: "강재상", type: "프리랜서", category: "HL",
+    gender: null, fee: 250000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 1차수"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I027", name: "이승묵", type: "프리랜서", category: "HL",
+    gender: null, fee: null, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: ["HL 신규"], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  },
+  {
+    id: "I028", name: "한지혜", type: "프리랜서", category: "HL",
+    gender: null, fee: 30000, contract: "개인과세 3.3%",
+    curricula: ["생성형 AI"], strengths: [], cautions: [], clients: ["HL그룹"],
+    keywords: ["HL","WorkSmart"]
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const SAMPLE_LEADS = [
+  {
+    "lead_id": "LEAD-20260310-001",
+    "lead_date": "2026-03-10",
+    "source_channel": "#b2b_lead",
+    "education_topic": "생성형 AI 활용 (전사 임직원 대상)",
+    "contact": { "name": "이민준", "organization": "한국중부발전", "phone": "010-3345-6789", "email": "minjun.lee@komipo.co.kr" },
+    "similar_cases": [
+      { "case_name": "대상주식회사 AI 리터러시 전사 필수 과정", "client": "대상주식회사", "date": "2025-09", "description": "전사 임직원 대상 생성형 AI 기초 과정, 정백/공지연 투입" },
+      { "case_name": "KT Gen AI 활용과정", "client": "KT", "date": "2025-11", "description": "정백 강사 투입, 실습 중심 6시간 과정" }
+    ],
+    "recommended_instructors": [
+      { "name": "정백", "expertise": "생성형 AI, 프롬프트 엔지니어링, AI 리터러시", "career": "HL그룹, 오뚜기, KT, 대상주식회사", "note": "전임강사 | 만족도 4.1~5.0 | 전사과정 다수 운영" },
+      { "name": "신동원", "expertise": "생성형 AI, AI Agent, 업무자동화", "career": "SK실트론, KB국민은행, 한국남동발전", "note": "전임강사 | 만족도 4.2~4.9 | 스케줄 사전 확인 필수" },
+      { "name": "공지연", "expertise": "생성형 AI 활용, AI 리터러시 기초, 비즈니스 AI", "career": "대상주식회사, 삼성물산, 한화투자증권", "note": "전임강사 | 만족도 4.1~4.8" },
+      { "name": "최진영B", "expertise": "생성형 AI 기초, 프롬프트 엔지니어링", "career": "동국제강, 홈앤서비스", "note": "프리랜서 | 150,000원/h | 기초과정 특화" }
+    ],
+    "notes": "공공기관 계열 에너지 공기업. 인원 약 80명 예상. 예산 협의 필요.",
+    "status": "컨택중",
+    "created_at": "2026-03-10T10:30:00.000Z",
+    "updated_at": "2026-03-12T14:00:00.000Z"
+  },
+  {
+    "lead_id": "LEAD-20260325-001",
+    "lead_date": "2026-03-25",
+    "source_channel": "#b2b_lead",
+    "education_topic": "업무자동화 (Make/n8n) + AI 연동",
+    "contact": { "name": "박소연", "organization": "롯데칠성음료", "phone": "010-9812-3456", "email": "soyeon.park@lotte.com" },
+    "similar_cases": [
+      { "case_name": "한국암웨이 엑셀 AI 과정", "client": "한국암웨이", "date": "2025-10", "description": "신동원 강사 투입, 엑셀+AI 자동화 1일 과정" },
+      { "case_name": "SK실트론 AI Agent 과정", "client": "SK실트론", "date": "2025-08", "description": "신동원 강사, AI Agent 활용 실무" }
+    ],
+    "recommended_instructors": [
+      { "name": "신동원", "expertise": "업무자동화 (Make), AI Agent, 엑셀+AI", "career": "SK실트론, 한국암웨이, 롯데마트", "note": "전임강사 | Make 자동화 전문 | 스케줄 사전 확인 필수" },
+      { "name": "이동훈", "expertise": "엑셀, 구글시트, 업무 자동화", "career": "", "note": "프리랜서 | 하드스킬 자동화 특화" }
+    ],
+    "notes": "Make 툴 기반 자동화 + ChatGPT API 연동까지 원하는 상황. 실무자 15명 대상. 하루 6시간.",
+    "status": "제안중",
+    "created_at": "2026-03-25T09:00:00.000Z",
+    "updated_at": "2026-04-02T11:20:00.000Z"
+  },
+  {
+    "lead_id": "LEAD-20260401-001",
+    "lead_date": "2026-04-01",
+    "source_channel": "#b2b_lead",
+    "education_topic": "데이터 분석 (파이썬 기초~중급) + 시각화",
+    "contact": { "name": "김태호", "organization": "GS칼텍스", "phone": "010-5523-7890", "email": "taeho.kim@gscaltex.com" },
+    "similar_cases": [
+      { "case_name": "GS리테일 데이터 분석 과정", "client": "GS리테일", "date": "2025-06", "description": "신도용 강사, 파이썬+데이터 분석 3일 과정" },
+      { "case_name": "HL만도 데이터 분석", "client": "HL만도", "date": "2025-09", "description": "김인섭 강사, 담당자 만족" }
+    ],
+    "recommended_instructors": [
+      { "name": "신도용", "expertise": "데이터 분석, 파이썬, AI+데이터", "career": "GS리테일", "note": "프리랜서 | 230,000원/h | 차분하고 부드러운 강의 스타일" },
+      { "name": "김인섭", "expertise": "데이터 분석, 파이썬", "career": "HL만도", "note": "개인사업자 | 200,000원/h | 연락 사전에 여유 두고 진행" }
+    ],
+    "notes": "기초부터 시각화(Matplotlib, Seaborn)까지. 분석팀 20명 대상. 3일 커리큘럼 요청.",
+    "status": "신규",
+    "created_at": "2026-04-01T13:00:00.000Z",
+    "updated_at": "2026-04-01T13:00:00.000Z"
+  },
+  {
+    "lead_id": "LEAD-20260410-001",
+    "lead_date": "2026-04-10",
+    "source_channel": "#b2b_lead",
+    "education_topic": "B2B 세일즈 AI 활용 (영업사원 대상)",
+    "contact": { "name": "정수민", "organization": "오스테오닉", "phone": "010-7734-2210", "email": "sumin.jung@osteonics.com" },
+    "similar_cases": [
+      { "case_name": "오스테오닉 AI 활용 과정", "client": "오스테오닉", "date": "2025-07", "description": "이보원 강사, 교육생+대표 모두 만족" },
+      { "case_name": "공개교육 B2B 세일즈 AI 원데이클래스", "client": "공개교육", "date": "2025-10", "description": "김재성 강사, 3회차 운영" }
+    ],
+    "recommended_instructors": [
+      { "name": "이보원", "expertise": "마케팅 AI, 비즈니스 AI, 생성형 AI 활용", "career": "오스테오닉", "note": "개인사업자 | 250,000원/h | 오스테오닉 기존 출강 | 계약 유형 사전 확인" },
+      { "name": "김재성", "expertise": "B2B 세일즈를 위한 생성형 AI 활용", "career": "공개교육 3회차", "note": "전임강사 | 세일즈 AI 특화 커리큘럼 보유" },
+      { "name": "정백", "expertise": "생성형 AI, 프롬프트 엔지니어링", "career": "HL그룹, 오뚜기, KT", "note": "전임강사 | 만족도 4.1~5.0" }
+    ],
+    "notes": "기존 진행한 과정 재의뢰. 이보원 강사 동일 투입 여부 확인 필요. 영업팀 30명, 반일 과정.",
+    "status": "확정",
+    "created_at": "2026-04-10T10:00:00.000Z",
+    "updated_at": "2026-04-14T16:30:00.000Z"
+  }
+];
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbzLHy8cLZ7_fCWjVXePyz21DV4cbe4NalC5EQb-VuG7hwDemd-H3dQyjXiHdMS2-ji8ZQ/exec';
+
+const stored = localStorage.getItem('b2b_leads');
+let leads = stored ? JSON.parse(stored) : SAMPLE_LEADS.map(l => ({...l}));
+let customInstructors = JSON.parse(localStorage.getItem('b2b_custom_instructors') || '[]');
+let currentSort = { field: 'lead_date', dir: 'desc' };
+let activeStatusFilter = '';
+let activeDashboardFilter = '';
+let pickedInstructors = [];
+
+// API 리드 → 대시보드 포맷 변환
+function mapApiLead(l) {
+  return {
+    lead_id: l.lead_id || '',
+    lead_date: l.lead_date || '',
+    source_channel: l.source || '#b2b_lead',
+    education_topic: l.education_topic || '',
+    contact: {
+      name: l.contact_name || '',
+      organization: l.organization || '',
+      phone: l.phone || '',
+      email: l.email || ''
+    },
+    similar_cases: [],
+    recommended_instructors: l.recommended_instructors
+      ? l.recommended_instructors.split(',').map(n => ({ name: n.trim(), expertise: '', career: '', note: l.instructor_notes || '' }))
+      : [],
+    notes: l.notes || '',
+    status: l.status || '신규',
+    gmail_link: l.gmail_link || '',
+    source: l.source || 'Gmail',
+    created_at: l.created_at || new Date().toISOString(),
+    updated_at: l.created_at || new Date().toISOString(),
+    _from_api: true
+  };
+}
+
+async function loadLeadsFromAPI() {
+  const syncEl = document.getElementById('syncStatus');
+  if (syncEl) syncEl.textContent = '⏳ 동기화 중...';
+  try {
+    const res = await fetch(`${API_URL}?action=getLeads`);
+    const data = await res.json();
+    if (data.leads && Array.isArray(data.leads)) {
+      const apiLeads = data.leads.map(mapApiLead);
+      // 로컬 수동 입력 리드만 유지 (API에 없는 것)
+      const localOnly = leads.filter(l => !l._from_api && !apiLeads.find(a => a.lead_id === l.lead_id));
+      leads = [...apiLeads, ...localOnly];
+      saveLeads();
+      if (syncEl) syncEl.textContent = `✓ ${leads.length}건 · ${new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})} 동기화`;
+    }
+  } catch(e) {
+    if (syncEl) syncEl.textContent = '⚠ 오프라인 (캐시 사용 중)';
+    console.warn('API fetch failed, using cached data:', e.message);
+  }
+  renderDashboard();
+  renderStatusFilterBar();
+  renderLeadsList();
+}
+
+function getAllInstructors() {
+  return [...INSTRUCTORS, ...customInstructors];
+}
+
+function saveInstructors() {
+  localStorage.setItem('b2b_custom_instructors', JSON.stringify(customInstructors));
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Tab navigation
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // Set default date
+  document.getElementById('fLeadDate').value = new Date().toISOString().split('T')[0];
+
+  // 캐시 즉시 렌더 후 API 동기화
+  renderDashboard();
+  renderStatusFilterBar();
+  renderLeadsList();
+  renderInstructors();
+  addCaseRow();
+  loadLeadsFromAPI();
+});
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+function switchTab(tabName) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  const panel = document.getElementById(`tab-${tabName}`);
+  panel.classList.add('active', 'animate-in');
+  setTimeout(() => panel.classList.remove('animate-in'), 300);
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const total = leads.length;
+  const statusCounts = { '신규': 0, '컨택중': 0, '제안중': 0, '확정': 0, '종료': 0, '실주': 0 };
+  leads.forEach(l => { if (statusCounts[l.status] !== undefined) statusCounts[l.status]++; });
+
+  const statCards = [
+    { label: 'Total Leads', value: total,                                       filter: '',       activeClass: 'active-all' },
+    { label: '신규',         value: statusCounts['신규'],                        filter: '신규',   activeClass: 'active-신규' },
+    { label: '컨택중',        value: statusCounts['컨택중'],                      filter: '컨택중', activeClass: 'active-컨택중' },
+    { label: '제안중',        value: statusCounts['제안중'],                      filter: '제안중', activeClass: 'active-제안중' },
+    { label: '확정',          value: statusCounts['확정'],                        filter: '확정',   activeClass: 'active-확정' },
+    { label: '종료/실주',     value: statusCounts['종료'] + statusCounts['실주'], filter: '_closed', activeClass: 'active-종료' },
+  ];
+
+  document.getElementById('statsGrid').innerHTML = statCards.map(c => {
+    const isActive = activeDashboardFilter === c.filter;
+    return `<div class="stat-card ${isActive ? c.activeClass : ''}"
+      style="cursor:pointer;transition:all 0.15s"
+      onclick="setDashboardFilter('${c.filter}')"
+      onmouseenter="this.style.borderColor='var(--border-focus)'"
+      onmouseleave="this.style.borderColor=''">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value}</div>
+    </div>`;
+  }).join('');
+
+  // Dashboard filter pills
+  const bar = document.getElementById('dashboardFilterBar');
+  if (bar) {
+    let html = `<button class="status-filter-pill ${activeDashboardFilter === '' ? 'active-all' : ''}" onclick="setDashboardFilter('')">전체 <span class="status-filter-count">${total}</span></button>`;
+    STATUS_LIST.forEach(s => {
+      const isActive = activeDashboardFilter === s;
+      html += `<button class="status-filter-pill ${isActive ? 'active-' + s : ''}" onclick="setDashboardFilter('${s}')">${s} <span class="status-filter-count">${statusCounts[s]}</span></button>`;
+    });
+    bar.innerHTML = html;
+  }
+
+  // Recent leads filtered
+  let recent = [...leads].sort((a, b) => b.lead_date.localeCompare(a.lead_date));
+  if (activeDashboardFilter === '_closed') {
+    recent = recent.filter(l => l.status === '종료' || l.status === '실주');
+  } else if (activeDashboardFilter) {
+    recent = recent.filter(l => l.status === activeDashboardFilter);
+  }
+  recent = recent.slice(0, 20);
+
+  const tbody = document.getElementById('recentLeadsBody');
+  const empty = document.getElementById('recentLeadsEmpty');
+
+  if (recent.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = recent.map(l => `
+    <tr>
+      <td style="font-family:'Space Grotesk',monospace;font-size:0.75rem;color:var(--text-muted)">${l.lead_id}</td>
+      <td>${l.lead_date}</td>
+      <td style="font-weight:500">${escHtml(l.education_topic)}</td>
+      <td>${escHtml(l.contact.name || '-')}</td>
+      <td>${escHtml(l.contact.organization || '-')}</td>
+      <td>${statusBadge(l.status)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="viewLead('${l.lead_id}')">View</button>
+        <button class="btn btn-primary btn-sm" onclick="openProposalGenerator('${l.lead_id}')">🚀</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function setDashboardFilter(filter) {
+  activeDashboardFilter = filter;
+  renderDashboard();
+}
+
+// ============================================================
+// STATUS FILTER PILLS
+// ============================================================
+const STATUS_LIST = ['신규', '컨택중', '제안중', '확정', '종료', '실주'];
+
+function renderStatusFilterBar() {
+  const bar = document.getElementById('statusFilterBar');
+  if (!bar) return;
+
+  const counts = {};
+  STATUS_LIST.forEach(s => { counts[s] = 0; });
+  leads.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
+  const total = leads.length;
+
+  let html = `<button class="status-filter-pill ${activeStatusFilter === '' ? 'active-all' : ''}" onclick="setStatusFilter('')">
+    전체 <span class="status-filter-count">${total}</span>
+  </button>`;
+
+  STATUS_LIST.forEach(s => {
+    const isActive = activeStatusFilter === s;
+    html += `<button class="status-filter-pill ${isActive ? 'active-' + s : ''}" onclick="setStatusFilter('${s}')">
+      ${s} <span class="status-filter-count">${counts[s]}</span>
+    </button>`;
+  });
+
+  bar.innerHTML = html;
+}
+
+function setStatusFilter(status) {
+  activeStatusFilter = status;
+  renderStatusFilterBar();
+  renderLeadsList();
+}
+
+// ============================================================
+// LEADS LIST
+// ============================================================
+function renderLeadsList() {
+  const search = document.getElementById('leadSearch').value.toLowerCase();
+
+  let filtered = leads.filter(l => {
+    const matchSearch = !search ||
+      l.education_topic.toLowerCase().includes(search) ||
+      l.contact.name.toLowerCase().includes(search) ||
+      l.contact.organization.toLowerCase().includes(search) ||
+      l.lead_id.toLowerCase().includes(search);
+    const matchStatus = !activeStatusFilter || l.status === activeStatusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va = getNestedVal(a, currentSort.field);
+    let vb = getNestedVal(b, currentSort.field);
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return currentSort.dir === 'asc' ? -1 : 1;
+    if (va > vb) return currentSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const tbody = document.getElementById('leadsTableBody');
+  const empty = document.getElementById('leadsEmpty');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(l => `
+    <tr>
+      <td style="font-family:'Space Grotesk',monospace;font-size:0.75rem;color:var(--text-muted)">${l.lead_id}</td>
+      <td>${l.lead_date}</td>
+      <td style="font-weight:500">${escHtml(l.education_topic)}</td>
+      <td>${escHtml(l.contact.name || '-')}</td>
+      <td>${escHtml(l.contact.organization || '-')}</td>
+      <td style="font-size:0.75rem;color:var(--text-secondary)">${(l.recommended_instructors || []).map(i => i.name).filter(Boolean).join(', ') || '-'}</td>
+      <td>${statusBadge(l.status)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="viewLead('${l.lead_id}')">View</button>
+        <button class="btn btn-primary btn-sm" onclick="openProposalGenerator('${l.lead_id}')">🚀</button>
+        <button class="btn btn-secondary btn-sm" onclick="editLead('${l.lead_id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.lead_id}')">Del</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function sortLeads(field) {
+  if (currentSort.field === field) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.field = field;
+    currentSort.dir = 'asc';
+  }
+  renderLeadsList();
+}
+
+function getNestedVal(obj, field) {
+  if (field.includes('.')) {
+    const parts = field.split('.');
+    return parts.reduce((o, k) => o?.[k], obj) || '';
+  }
+  return obj[field] || '';
+}
+
+// ============================================================
+// LEAD FORM
+// ============================================================
+function saveLead(e) {
+  e.preventDefault();
+  const editId = document.getElementById('editLeadId').value;
+  const isEdit = !!editId;
+
+  const lead = {
+    lead_id: isEdit ? editId : generateLeadId(),
+    lead_date: document.getElementById('fLeadDate').value,
+    source_channel: "#b2b_lead",
+    education_topic: document.getElementById('fTopic').value.trim(),
+    contact: {
+      name: document.getElementById('fName').value.trim(),
+      organization: document.getElementById('fOrg').value.trim(),
+      phone: document.getElementById('fPhone').value.trim(),
+      email: document.getElementById('fEmail').value.trim()
+    },
+    similar_cases: collectCases(),
+    recommended_instructors: collectInstructors(),
+    notes: document.getElementById('fNotes').value.trim(),
+    status: document.getElementById('fStatus').value,
+    created_at: isEdit ? leads.find(l => l.lead_id === editId)?.created_at || new Date().toISOString() : new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  if (isEdit) {
+    const idx = leads.findIndex(l => l.lead_id === editId);
+    if (idx >= 0) leads[idx] = lead;
+  } else {
+    leads.push(lead);
+  }
+
+  saveLeads();
+  resetForm();
+  renderDashboard();
+  renderStatusFilterBar();
+  renderLeadsList();
+  switchTab('leads');
+  showToast(isEdit ? 'Lead updated!' : 'Lead saved!', 'success');
+}
+
+function generateLeadId() {
+  const date = document.getElementById('fLeadDate').value.replace(/-/g, '');
+  const todayLeads = leads.filter(l => l.lead_id.startsWith(`LEAD-${date}`));
+  const seq = String(todayLeads.length + 1).padStart(3, '0');
+  return `LEAD-${date}-${seq}`;
+}
+
+function collectCases() {
+  const cases = [];
+  document.querySelectorAll('.case-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    if (inputs[0].value.trim()) {
+      cases.push({
+        case_name: inputs[0].value.trim(),
+        client: inputs[1].value.trim(),
+        date: inputs[2].value,
+        description: inputs[3].value.trim()
+      });
+    }
+  });
+  return cases;
+}
+
+function collectInstructors() {
+  const instructors = [];
+  document.querySelectorAll('.instructor-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    if (inputs[0].value.trim()) {
+      instructors.push({
+        name: inputs[0].value.trim(),
+        expertise: inputs[1].value.trim(),
+        career: inputs[2].value.trim(),
+        note: inputs[3].value.trim()
+      });
+    }
+  });
+  return instructors;
+}
+
+function addCaseRow(data = {}) {
+  const container = document.getElementById('casesContainer');
+  const row = document.createElement('div');
+  row.className = 'case-row form-grid';
+  row.style.marginBottom = '0.5rem';
+  row.innerHTML = `
+    <div class="form-group"><input class="form-input" placeholder="Case Name" value="${escAttr(data.case_name || '')}"></div>
+    <div class="form-group"><input class="form-input" placeholder="Client" value="${escAttr(data.client || '')}"></div>
+    <div class="form-group"><input type="date" class="form-input" value="${data.date || ''}"></div>
+    <div class="form-group" style="display:flex;flex-direction:row;align-items:center;gap:0.5rem">
+      <input class="form-input" placeholder="Description" style="flex:1" value="${escAttr(data.description || '')}">
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.case-row').remove()">&times;</button>
+    </div>
+  `;
+  container.appendChild(row);
+}
+
+function addInstructorRow(data = {}) {
+  const container = document.getElementById('instructorRows');
+  const row = document.createElement('div');
+  row.className = 'instructor-row form-grid';
+  row.style.marginBottom = '0.5rem';
+  row.innerHTML = `
+    <div class="form-group"><input class="form-input" placeholder="Name" value="${escAttr(data.name || '')}"></div>
+    <div class="form-group"><input class="form-input" placeholder="Expertise" value="${escAttr(data.expertise || '')}"></div>
+    <div class="form-group"><input class="form-input" placeholder="Career" value="${escAttr(data.career || '')}"></div>
+    <div class="form-group" style="display:flex;flex-direction:row;align-items:center;gap:0.5rem">
+      <input class="form-input" placeholder="Note" style="flex:1" value="${escAttr(data.note || '')}">
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.instructor-row').remove()">&times;</button>
+    </div>
+  `;
+  container.appendChild(row);
+}
+
+function resetForm() {
+  document.getElementById('leadForm').reset();
+  document.getElementById('editLeadId').value = '';
+  document.getElementById('fLeadDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('casesContainer').innerHTML = '';
+  document.getElementById('instructorRows').innerHTML = '';
+  document.getElementById('selectedInstructors').innerHTML = '';
+  document.getElementById('submitBtn').textContent = 'Save Lead';
+  addCaseRow();
+}
+
+function editLead(id) {
+  const lead = leads.find(l => l.lead_id === id);
+  if (!lead) return;
+
+  document.getElementById('editLeadId').value = lead.lead_id;
+  document.getElementById('fLeadDate').value = lead.lead_date;
+  document.getElementById('fStatus').value = lead.status;
+  document.getElementById('fTopic').value = lead.education_topic;
+  document.getElementById('fName').value = lead.contact.name;
+  document.getElementById('fOrg').value = lead.contact.organization;
+  document.getElementById('fPhone').value = lead.contact.phone;
+  document.getElementById('fEmail').value = lead.contact.email;
+  document.getElementById('fNotes').value = lead.notes || '';
+  document.getElementById('submitBtn').textContent = 'Update Lead';
+
+  // Cases
+  document.getElementById('casesContainer').innerHTML = '';
+  (lead.similar_cases || []).forEach(c => addCaseRow(c));
+  if ((lead.similar_cases || []).length === 0) addCaseRow();
+
+  // Instructors
+  document.getElementById('instructorRows').innerHTML = '';
+  (lead.recommended_instructors || []).forEach(i => addInstructorRow(i));
+
+  switchTab('new-lead');
+}
+
+// ============================================================
+// LEAD DETAIL VIEW
+// ============================================================
+function viewLead(id) {
+  const lead = leads.find(l => l.lead_id === id);
+  if (!lead) return;
+
+  document.getElementById('modalLeadTitle').textContent = `${lead.lead_id} — ${lead.education_topic}`;
+
+  let html = `
+    <div class="detail-section">
+      <h3>Basic Info</h3>
+      <div class="detail-row"><span class="label">ID</span><span>${lead.lead_id}</span></div>
+      <div class="detail-row"><span class="label">Date</span><span>${lead.lead_date}</span></div>
+      <div class="detail-row"><span class="label">Topic</span><span style="font-weight:500">${escHtml(lead.education_topic)}</span></div>
+      <div class="detail-row"><span class="label">Status</span>${statusBadge(lead.status)}</div>
+      <div class="detail-row"><span class="label">Channel</span><span>${lead.source_channel}</span></div>
+      ${lead.gmail_link ? `<div class="detail-row"><span class="label">원문</span><a href="${lead.gmail_link}" target="_blank" style="color:var(--accent-blue);font-size:0.78rem">📧 Gmail 원문 보기</a></div>` : ''}
+    </div>
+    <div class="detail-section">
+      <h3>Contact</h3>
+      <div class="detail-row"><span class="label">Name</span><span>${escHtml(lead.contact.name || '-')}</span></div>
+      <div class="detail-row"><span class="label">Org</span><span>${escHtml(lead.contact.organization || '-')}</span></div>
+      <div class="detail-row"><span class="label">Phone</span><span>${escHtml(lead.contact.phone || '-')}</span></div>
+      <div class="detail-row"><span class="label">Email</span><span>${escHtml(lead.contact.email || '-')}</span></div>
+    </div>
+  `;
+
+  if (lead.similar_cases?.length) {
+    html += `<div class="detail-section"><h3>Similar Cases</h3>`;
+    lead.similar_cases.forEach(c => {
+      html += `
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.75rem;margin-bottom:0.5rem">
+          <div style="font-weight:500;font-size:0.85rem">${escHtml(c.case_name)}</div>
+          <div style="font-size:0.78rem;color:var(--text-secondary)">${escHtml(c.client)} ${c.date ? '| ' + c.date : ''}</div>
+          ${c.description ? `<div style="font-size:0.78rem;margin-top:0.25rem">${escHtml(c.description)}</div>` : ''}
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  if (lead.recommended_instructors?.length) {
+    html += `<div class="detail-section"><h3>Recommended Instructors</h3><div class="table-wrapper"><table>
+      <thead><tr><th>#</th><th>Name</th><th>Expertise</th><th>Career</th><th>Note</th></tr></thead><tbody>`;
+    lead.recommended_instructors.forEach((inst, i) => {
+      html += `<tr><td>${i + 1}</td><td style="font-weight:500">${escHtml(inst.name)}</td><td>${escHtml(inst.expertise)}</td><td>${escHtml(inst.career)}</td><td>${escHtml(inst.note)}</td></tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+
+  if (lead.notes) {
+    html += `<div class="detail-section"><h3>Notes</h3><p style="font-size:0.82rem;white-space:pre-wrap">${escHtml(lead.notes)}</p></div>`;
+  }
+
+  html += `
+    <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border)">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('leadDetailModal');editLead('${lead.lead_id}')">Edit</button>
+      <button class="btn btn-primary btn-sm" onclick="openProposalGenerator('${lead.lead_id}')">🚀 제안 생성</button>
+      <select class="form-select" style="font-size:0.78rem;padding:0.35rem 0.5rem" onchange="quickStatusChange('${lead.lead_id}', this.value)">
+        ${['신규','컨택중','제안중','확정','종료','실주'].map(s => `<option value="${s}" ${s === lead.status ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </div>
+  `;
+
+  document.getElementById('modalLeadContent').innerHTML = html;
+  openModal('leadDetailModal');
+}
+
+function openProposalGenerator(id) {
+  const lead = leads.find(l => l.lead_id === id);
+  if (!lead) return;
+  const params = new URLSearchParams({
+    company: lead.contact.organization || '',
+    contact: lead.contact.name || '',
+    topic: lead.education_topic || ''
+  });
+  window.open(`http://localhost:3001/?${params.toString()}`, '_blank');
+}
+
+function quickStatusChange(id, status) {
+  const lead = leads.find(l => l.lead_id === id);
+  if (lead) {
+    lead.status = status;
+    lead.updated_at = new Date().toISOString();
+    saveLeads();
+    renderDashboard();
+    renderStatusFilterBar();
+    renderLeadsList();
+    showToast(`Status updated to ${status}`, 'success');
+    // API 상태 업데이트 (비동기, 실패해도 로컬은 저장됨)
+    if (lead._from_api) {
+      fetch(`${API_URL}?action=updateStatus&lead_id=${encodeURIComponent(id)}&status=${encodeURIComponent(status)}`)
+        .catch(() => {});
+    }
+  }
+}
+
+function deleteLead(id) {
+  if (!confirm(`Delete lead ${id}?`)) return;
+  leads = leads.filter(l => l.lead_id !== id);
+  saveLeads();
+  renderDashboard();
+  renderStatusFilterBar();
+  renderLeadsList();
+  showToast('Lead deleted', 'success');
+}
+
+// ============================================================
+// INSTRUCTOR MATCHING
+// ============================================================
+function matchInstructors(topic) {
+  if (!topic) return getAllInstructors().filter(i => !i.warning).slice(0, 12);
+
+  const terms = topic.toLowerCase().split(/[\s,/+]+/).filter(t => t.length > 1);
+  const scored = getAllInstructors().map(inst => {
+    let score = 0;
+    const searchText = [
+      ...inst.curricula,
+      ...inst.keywords,
+      ...(inst.strengths || []),
+      inst.name, inst.category
+    ].join(' ').toLowerCase();
+
+    terms.forEach(term => {
+      if (searchText.includes(term)) score += 3;
+      // Partial match
+      inst.keywords.forEach(kw => {
+        if (kw.toLowerCase().includes(term) || term.includes(kw.toLowerCase())) score += 2;
+      });
+      inst.curricula.forEach(c => {
+        if (c.toLowerCase().includes(term)) score += 4;
+      });
+    });
+
+    // Boost for 전임
+    if (inst.type === '전임강사') score += 2;
+    // Penalty for warning
+    if (inst.warning) score -= 5;
+
+    return { ...inst, score };
+  });
+
+  return scored.filter(i => i.score > 0).sort((a, b) => b.score - a.score);
+}
+
+function openInstructorPicker() {
+  const topic = document.getElementById('fTopic').value;
+  const matched = matchInstructors(topic);
+  pickedInstructors = [];
+
+  const grid = document.getElementById('pickerInstructorGrid');
+  if (matched.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><p>No matching instructors. Try a different topic.</p></div>';
+  } else {
+    grid.innerHTML = matched.map(inst => `
+      <div class="instructor-card" id="pick-${inst.id}" onclick="togglePick('${inst.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="name">${inst.name} ${inst.warning ? '<span class="caution-icon" title="Caution">!</span>' : ''}</div>
+          <span class="tag ${categoryTagClass(inst.category)}">${inst.category}</span>
+        </div>
+        <div class="meta">
+          <span>${inst.type}</span>
+          ${inst.fee ? `<span>${typeof inst.fee === 'number' ? inst.fee.toLocaleString() : inst.fee}원/h</span>` : ''}
+          ${inst.satisfaction ? `<span>★ ${inst.satisfaction}</span>` : ''}
+        </div>
+        <div class="tags">${inst.curricula.slice(0, 4).map(c => `<span class="tag tag-blue">${c}</span>`).join('')}</div>
+        ${inst.score ? `<div style="margin-top:0.5rem;font-size:0.7rem;color:var(--accent-green)">Match score: ${inst.score}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  openModal('instructorPickerModal');
+}
+
+function togglePick(id) {
+  const idx = pickedInstructors.indexOf(id);
+  const card = document.getElementById(`pick-${id}`);
+  if (idx >= 0) {
+    pickedInstructors.splice(idx, 1);
+    card.style.borderColor = 'var(--border)';
+    card.style.boxShadow = 'none';
+  } else {
+    if (pickedInstructors.length >= 6) {
+      showToast('Maximum 6 instructors', 'error');
+      return;
+    }
+    pickedInstructors.push(id);
+    card.style.borderColor = 'var(--accent-green)';
+    card.style.boxShadow = '0 0 12px rgba(16,185,129,0.2)';
+  }
+}
+
+function applyPickedInstructors() {
+  document.getElementById('instructorRows').innerHTML = '';
+  pickedInstructors.forEach(id => {
+    const inst = getAllInstructors().find(i => i.id === id);
+    if (inst) {
+      addInstructorRow({
+        name: inst.name,
+        expertise: inst.curricula.slice(0, 3).join(', '),
+        career: inst.clients.slice(0, 3).join(', '),
+        note: inst.type + (inst.fee ? ` | ${typeof inst.fee === 'number' ? inst.fee.toLocaleString() : inst.fee}원/h` : '')
+      });
+    }
+  });
+  closeModal('instructorPickerModal');
+  showToast(`${pickedInstructors.length} instructors added`, 'success');
+}
+
+// ============================================================
+// INSTRUCTOR LIST
+// ============================================================
+function renderInstructors() {
+  const search = document.getElementById('instructorSearch').value.toLowerCase();
+  const cat = document.getElementById('instructorCategory').value;
+
+  let filtered = getAllInstructors().filter(inst => {
+    const matchCat = !cat || inst.category === cat;
+    const matchSearch = !search ||
+      inst.name.toLowerCase().includes(search) ||
+      inst.curricula.some(c => c.toLowerCase().includes(search)) ||
+      inst.keywords.some(k => k.toLowerCase().includes(search)) ||
+      (inst.strengths || []).some(s => s.toLowerCase().includes(search)) ||
+      inst.clients.some(c => c.toLowerCase().includes(search));
+    return matchCat && matchSearch;
+  });
+
+  const grid = document.getElementById('instructorGrid');
+  grid.innerHTML = filtered.map(inst => `
+    <div class="instructor-card" onclick="viewInstructor('${inst.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="name">${inst.name} ${inst.warning ? '<span class="caution-icon" title="Caution">!</span>' : ''}</div>
+        <span class="tag ${categoryTagClass(inst.category)}">${inst.category}</span>
+      </div>
+      <div class="meta">
+        <span>${inst.type}</span>
+        ${inst.fee ? `<span>${typeof inst.fee === 'number' ? inst.fee.toLocaleString() : inst.fee}원/h</span>` : ''}
+        ${inst.satisfaction ? `<span>★ ${inst.satisfaction}</span>` : ''}
+        ${inst.gender ? `<span>${inst.gender}</span>` : ''}
+      </div>
+      <div class="tags">${inst.curricula.slice(0, 4).map(c => `<span class="tag tag-blue">${c}</span>`).join('')}</div>
+      <div style="margin-top:0.5rem;font-size:0.73rem;color:var(--text-muted)">
+        ${inst.clients.slice(0, 3).join(', ') || 'No client history'}
+      </div>
+      ${inst.isCustom ? `<button class="btn btn-danger btn-sm" style="margin-top:0.5rem;width:100%" onclick="event.stopPropagation();deleteCustomInstructor('${inst.id}')">삭제</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function viewInstructor(id) {
+  const inst = getAllInstructors().find(i => i.id === id);
+  if (!inst) return;
+
+  document.getElementById('modalInstructorTitle').textContent = inst.name;
+
+  let html = `
+    <div class="detail-section">
+      <h3>Profile</h3>
+      <div class="detail-row"><span class="label">Type</span><span>${inst.type}</span></div>
+      <div class="detail-row"><span class="label">Category</span><span class="tag ${categoryTagClass(inst.category)}">${inst.category}</span></div>
+      ${inst.gender ? `<div class="detail-row"><span class="label">Gender</span><span>${inst.gender}</span></div>` : ''}
+      ${inst.fee ? `<div class="detail-row"><span class="label">Fee</span><span>${typeof inst.fee === 'number' ? inst.fee.toLocaleString() : inst.fee}원/h</span></div>` : ''}
+      ${inst.contract ? `<div class="detail-row"><span class="label">Contract</span><span>${inst.contract}</span></div>` : ''}
+      ${inst.satisfaction ? `<div class="detail-row"><span class="label">Satisfaction</span><span>★ ${inst.satisfaction}</span></div>` : ''}
+    </div>
+    <div class="detail-section">
+      <h3>Curricula</h3>
+      <div class="tags" style="gap:0.4rem">${inst.curricula.map(c => `<span class="tag tag-blue">${c}</span>`).join('')}</div>
+    </div>
+  `;
+
+  if (inst.strengths?.length) {
+    html += `<div class="detail-section"><h3>Strengths</h3><ul style="font-size:0.82rem;padding-left:1.2rem;color:var(--accent-green)">
+      ${inst.strengths.map(s => `<li style="margin-bottom:0.25rem">${escHtml(s)}</li>`).join('')}
+    </ul></div>`;
+  }
+
+  if (inst.cautions?.length) {
+    html += `<div class="detail-section"><h3>Cautions</h3><ul style="font-size:0.82rem;padding-left:1.2rem;color:var(--accent-amber)">
+      ${inst.cautions.map(c => `<li style="margin-bottom:0.25rem">${escHtml(c)}</li>`).join('')}
+    </ul></div>`;
+  }
+
+  if (inst.clients?.length) {
+    html += `<div class="detail-section"><h3>Client History</h3>
+      <div class="tags" style="gap:0.4rem">${inst.clients.map(c => `<span class="tag tag-purple">${c}</span>`).join('')}</div>
+    </div>`;
+  }
+
+  document.getElementById('modalInstructorContent').innerHTML = html;
+  openModal('instructorDetailModal');
+}
+
+// ============================================================
+// GMAIL COMPOSE
+// ============================================================
+function sendLeadEmail(id) {
+  const lead = leads.find(l => l.lead_id === id);
+  if (!lead) return;
+  const to = lead.contact.email || '';
+  const name = lead.contact.name || '담당자';
+  const org = lead.contact.organization || '귀사';
+  const topic = lead.education_topic || '';
+  const subject = encodeURIComponent(`[Day1 Company] ${topic} 교육 제안 드립니다`);
+  const body = encodeURIComponent(
+`안녕하세요, ${name}님.
+
+Day1 Company 이유진 매니저입니다.
+
+${org}의 ${topic} 교육 관련하여 제안 드리고자 연락드립니다.
+
+저희 Day1 Company는 기업 맞춤형 AI·디지털 교육을 전문으로 하며,
+귀사의 교육 목표에 최적화된 커리큘럼과 강사진을 제안드릴 수 있습니다.
+
+미팅 일정 조율이 가능하시면 편하신 시간을 알려주시면 감사하겠습니다.
+
+감사합니다.
+
+이유진 드림
+yj.lee@day1company.co.kr
+Day1 Company | B2B 기업교육2팀`
+  );
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${subject}&body=${body}`, '_blank');
+}
+
+// ============================================================
+// INSTRUCTOR ADD / DELETE
+// ============================================================
+function openAddInstructorModal() {
+  document.getElementById('addInstructorForm').reset();
+  openModal('addInstructorModal');
+}
+
+function saveNewInstructor(e) {
+  e.preventDefault();
+  const splitTrim = val => val.split(',').map(s => s.trim()).filter(Boolean);
+  const inst = {
+    id: 'C' + String(Date.now()).slice(-6),
+    name: document.getElementById('iName').value.trim(),
+    type: document.getElementById('iType').value,
+    category: document.getElementById('iCategory').value,
+    gender: document.getElementById('iGender').value || null,
+    fee: parseInt(document.getElementById('iFee').value) || null,
+    contract: document.getElementById('iContract').value.trim() || null,
+    satisfaction: document.getElementById('iSatisfaction').value.trim() || null,
+    curricula: splitTrim(document.getElementById('iCurricula').value),
+    strengths: splitTrim(document.getElementById('iStrengths').value),
+    cautions: splitTrim(document.getElementById('iCautions').value),
+    clients: splitTrim(document.getElementById('iClients').value),
+    keywords: splitTrim(document.getElementById('iKeywords').value),
+    isCustom: true
+  };
+  customInstructors.push(inst);
+  saveInstructors();
+  renderInstructors();
+  closeModal('addInstructorModal');
+  showToast(`${inst.name} 강사가 추가됐습니다`, 'success');
+  return false;
+}
+
+function deleteCustomInstructor(id) {
+  if (!confirm('이 강사를 삭제할까요?')) return;
+  customInstructors = customInstructors.filter(i => i.id !== id);
+  saveInstructors();
+  renderInstructors();
+  showToast('강사가 삭제됐습니다', 'success');
+}
+
+// ============================================================
+// JSON IMPORT / EXPORT
+// ============================================================
+function exportAllJSON() {
+  const data = {
+    export_date: new Date().toISOString(),
+    total_leads: leads.length,
+    leads: leads
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `b2b_leads_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSON exported!', 'success');
+}
+
+function resetToSample() {
+  if (!confirm('샘플 데이터로 초기화할까요? 현재 데이터는 삭제됩니다.')) return;
+  leads = SAMPLE_LEADS.map(l => ({...l}));
+  saveLeads();
+  renderDashboard();
+  renderStatusFilterBar();
+  renderLeadsList();
+  showToast('샘플 데이터로 초기화됐습니다', 'success');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const imported = data.leads || (Array.isArray(data) ? data : [data]);
+      let count = 0;
+      imported.forEach(lead => {
+        if (lead.lead_id && lead.education_topic) {
+          const exists = leads.findIndex(l => l.lead_id === lead.lead_id);
+          if (exists >= 0) {
+            leads[exists] = lead;
+          } else {
+            leads.push(lead);
+          }
+          count++;
+        }
+      });
+      saveLeads();
+      renderDashboard();
+      renderStatusFilterBar();
+      renderLeadsList();
+      showToast(`${count} leads imported!`, 'success');
+    } catch (err) {
+      showToast('Invalid JSON file', 'error');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function saveLeads() {
+  localStorage.setItem('b2b_leads', JSON.stringify(leads));
+}
+
+function statusBadge(status) {
+  const map = {
+    '신규': 'status-new',
+    '컨택중': 'status-contact',
+    '제안중': 'status-proposal',
+    '확정': 'status-confirmed',
+    '종료': 'status-closed',
+    '실주': 'status-lost'
+  };
+  return `<span class="status-badge ${map[status] || 'status-new'}">${status}</span>`;
+}
+
+function categoryTagClass(cat) {
+  const map = { AI: 'tag-blue', Data: 'tag-cyan', Business: 'tag-amber', HardSkill: 'tag-green', Design: 'tag-purple', HL: 'tag-red' };
+  return map[cat] || 'tag-blue';
+}
+
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function escAttr(str) {
+  return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast toast-${type} show`;
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+</script>
+</body>
+</html>
