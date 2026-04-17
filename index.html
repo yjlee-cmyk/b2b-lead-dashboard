@@ -1388,7 +1388,7 @@ async function loadLeadsFromAPI() {
   const syncEl = document.getElementById('syncStatus');
   if (syncEl) syncEl.textContent = '⏳ 동기화 중...';
   try {
-    const res = await fetch(`${API_URL}?action=getLeads`);
+    const res = await fetch(`${API_URL}?action=getLeads`, { redirect: 'follow' });
     const data = await res.json();
     if (data.leads && Array.isArray(data.leads)) {
       const apiLeads = data.leads.map(mapApiLead);
